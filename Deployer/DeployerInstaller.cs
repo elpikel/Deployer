@@ -9,16 +9,24 @@ namespace Deployer
     {
         public DeployerInstaller()
         {
-            Installers.Add(new ServiceProcessInstaller
-                {
-                    Account = ServiceAccount.LocalSystem
-                });
-            Installers.Add(new ServiceInstaller
-                {
-                    DisplayName = "My Service",
-                    StartType = ServiceStartMode.Manual,
-                    ServiceName = "My Service"
-                });
+            var serviceProcessInstaller = new ServiceProcessInstaller();
+            var serviceInstaller = new ServiceInstaller();
+
+            //# Service Account Information
+            serviceProcessInstaller.Account = ServiceAccount.LocalSystem;
+            serviceProcessInstaller.Username = null;
+            serviceProcessInstaller.Password = null;
+
+            //# Service Information
+            serviceInstaller.DisplayName = "Dvi Deployer";
+            serviceInstaller.StartType = ServiceStartMode.Automatic;
+
+            // This must be identical to the WindowsService.ServiceBase name
+            // set in the constructor of WindowsService.cs
+            serviceInstaller.ServiceName = "Deployer";
+
+            Installers.Add(serviceProcessInstaller);
+            Installers.Add(serviceInstaller);
         }
     }
 }

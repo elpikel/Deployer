@@ -1,5 +1,6 @@
 ﻿using System.ServiceProcess;
 using System.Threading;
+using System.Timers;
 
 namespace Deployer
 {
@@ -7,27 +8,40 @@ namespace Deployer
     {
         private const int TenMinutes = 60000;
 
-        static void Main()
+        static void Main(string[] args)
         {
-            Run(new Program());
+            ServiceBase.Run(new Program());
         }
 
         public Program()
         {
-            this.ServiceName = "My Service";
+            ServiceName = "Deployer";
+            EventLog.Source = "Deployer";
+            EventLog.Log = "Application";
+
+            // These Flags set whether or not to handle that specific
+            //  type of event. Set to true if you need it, false otherwise.
+            CanHandlePowerEvent = true;
+            CanHandleSessionChangeEvent = true;
+            CanPauseAndContinue = true;
+            CanShutdown = true;
+            CanStop = true;
+
+            var time = new System.Timers.Timer();
+            time.Start();
+            time.Interval = TenMinutes;
+            time.Elapsed += RunScript;
         }
 
         protected override void OnStart(string[] args)
         {
             base.OnStart(args);
+        }
 
-            var scriptRunner = new ScriptRunner(new ConfigReader(), new PowershellWrapper());
-
-            while (true)
-            {
-                scriptRunner.Run();
-                Thread.Sleep(TenMinutes);
-            }
+        private void RunScript(object sender, ElapsedEventArgs e)
+        {
+            var scriptRunner = new ScriptRunner(new PowershellWrapper());
+            scriptRunner.Run();
         }
     }
 }
